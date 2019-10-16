@@ -1,0 +1,535 @@
+---
+title: "Results from Identity Alignement on Atitude and Affect"
+author: "Alina Gutoreva"
+date: "3 August 2018"
+output: word_document
+---
+
+```{r, echo = FALSE, message = FALSE, comment = NA}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Results from Identity Alignement on Atitude and Affect
+
+In this study, there were two factors with two levels each, making up four different groups. First factor, is alignement - alignened social identity or misaligned. Second factor was valence of the identity - concerned and unconcerned.
+There were 7 different measures in this study all measured within each participant:
+
+Attitude:
+  1. Positive Attitude change
+  2. Negativr Attitude change
+  3. Overall Attitude change
+  
+Affect :
+  4. Positive Affect change
+  5. Negative Affect change
+  6. Overall Affect change
+  
+7. Belief change
+
+And other more explorative measures such as
+8. Economic behaviour (Dictator's game 'playing' with the social source)
+9. Trustworthiness of social source
+10. Ethical 
+11. Reliability of information provided by social source
+
+Additional measures are social desirability and ethical viewpoints.
+
+
+```{r, echo = FALSE, message = FALSE, comment = NA}
+library(data.table)
+id_data <- fread("file:///C:/Users/u1664328/Dropbox/4. Work with Sebastiano/Attitude and Emotion study/Data/Importnat - Data/data_for_r.csv",header=T)
+View(id_data)
+id_data <- id_data[,c(-1,-2)] # deleting participant id row
+id_data$condition <- as.factor(id_data$condition)
+id_data$alignement <- as.factor(id_data$alignement)
+levels(id_data$alignement) <- c("misaligned", "aligned")
+```
+
+## Data included in the analysis
+
+The were two exclusion criteria based on whether subjects read the text provided by the social source and in one of the affect questionnaires. In this analysis, participants who failed the first 'check' question were also included due to a low number of participants who hold negative valence of identity factor. This, however, might be change in upcoming analysis.
+
+## Plots
+
+```{r, echo = FALSE, message = FALSE, comment = NA}
+#proportion risky across lotteries
+library(dplyr)
+library(knitr)
+summary <- id_data %>% 
+  group_by(condition, alignement) %>%
+  summarize_all(funs(mean))
+
+View(id_data)
+head(summary)
+```
+
+The sumamry of the data based on condition is as follows.
+
+# Attitude
+
+### Total Attitude Change
+```{r, echo = FALSE, message = FALSE, comment = NA}
+library(ggplot2)
+#a function to get rid of the ugly grey background in ggplot2
+cleanup = theme(panel.grid.major  = element_blank(),
+                panel.grid.minor  = element_blank(),
+                panel.background  = element_blank(),
+                axis.line = element_line(color = "black"))
+
+att_total = ggplot(id_data, aes(x=condition, y=change_total_attit, fill=alignement)) +  geom_violin()
+att_total +
+  stat_summary(fun.y=mean, geom="point", 
+               shape=23, size=2, 
+               color="black")+
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.2)+
+  cleanup +
+  ylim(0, 100) +
+  xlab("Condition")+
+  ylab("Total Attitude Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+#Bar plot
+att_total_bar = ggplot(id_data, aes(condition, change_total_attit,fill=alignement)) # creating a blank plot
+
+att_total_bar +
+  stat_summary(fun.y = mean, geom = "bar", 
+               fill = "grey", 
+               color = "black") +
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  cleanup +
+  ylim(0, 100) +
+  xlab("Condition")+
+  ylab("Total Attitude Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+
+ggplot(id_data, aes(x=condition, y=change_total_attit, fill=alignement)) +
+    geom_boxplot(alpha=0.4) +
+    stat_summary(fun.y=mean, geom="point", shape=20, size=10, color="red", fill="red") +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set3")+
+    cleanup +
+    ylim(0, 100) +
+    xlab("Condition")+
+    ylab("Total Attitude Change")+
+    scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+```
+
+Test between the conditions - aligned vs. misaligned
+```{r, echo = FALSE, message = FALSE, comment = NA}
+#analysis
+t.test(change_total_attit ~ alignement, id_data, paired=FALSE,var.equal=TRUE)
+```
+ANOVA test between all four groups
+```{r, echo = FALSE, message = FALSE, comment = NA}
+
+##realised that we need to change condition to a factor with two levels = valence of "concerned" and "unconcerned"
+# so, for analysis use a different data
+id_data$valence<-id_data$condition
+id_data$valence <- as.factor(id_data$valence)
+levels(id_data$valence) <- c("concerned", "concerned", "unconcerned", "unconcerned")
+
+res.aov2 <- aov(change_total_attit ~ valence + alignement, data = id_data)
+summary(res.aov2)
+
+```
+
+
+
+
+### Positive Attitude Change
+
+```{r, echo = FALSE, message = FALSE, comment = NA}
+library(ggplot2)
+#a function to get rid of the ugly grey background in ggplot2
+att_pos = ggplot(id_data, aes(x=condition, y=change_pos_attit, fill=alignement)) +  geom_violin()
+att_pos +
+  stat_summary(fun.y=mean, geom="point", 
+               shape=23, size=2, 
+               color="black")+
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.2)+
+  cleanup +
+  ylim(0, 100) +
+  xlab("Condition")+
+  ylab("Positive Attitude Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+#Bar plot
+att_pos_bar = ggplot(id_data, aes(condition, change_pos_attit,fill=alignement)) # creating a blank plot
+
+att_pos_bar +
+  stat_summary(fun.y = mean, geom = "bar", 
+               fill = "grey", 
+               color = "black") +
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  cleanup +
+  ylim(0, 100) +
+  xlab("Condition")+
+  ylab("Positive Attitude Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+
+ggplot(id_data, aes(x=condition, y=change_pos_attit, fill=alignement)) +
+    geom_boxplot(alpha=0.4) +
+    stat_summary(fun.y=mean, geom="point", shape=20, size=10, color="red", fill="red") +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set3")+
+    cleanup +
+    ylim(0, 100) +
+    xlab("Condition")+
+    ylab("Positive Attitude Change")+
+    scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+```
+
+Test between the conditions - aligned vs. misaligned
+```{r, echo = FALSE, message = FALSE, comment = NA}
+#analysis
+t.test(change_pos_attit ~ alignement, id_data, paired=FALSE,var.equal=TRUE)
+```
+ANOVA test between all four groups
+```{r, echo = FALSE, message = FALSE, comment = NA}
+res.aov2 <- aov(change_pos_attit ~ valence + alignement, data = id_data)
+summary(res.aov2)
+```
+
+### Negative Attitude Change
+
+```{r, echo = FALSE, message = FALSE, comment = NA}
+library(ggplot2)
+#a function to get rid of the ugly grey background in ggplot2
+att_neg = ggplot(id_data, aes(x=condition, y=change_neg_attit, fill=alignement)) +  geom_violin()
+att_neg +
+  stat_summary(fun.y=mean, geom="point", 
+               shape=23, size=2, 
+               color="black")+
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.2)+
+  cleanup +
+  ylim(0, 100) +
+  xlab("Condition")+
+  ylab("Negative Attitude Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+#Bar plot
+att_neg_bar = ggplot(id_data, aes(condition, change_neg_attit,fill=alignement)) # creating a blank plot
+
+att_neg_bar +
+  stat_summary(fun.y = mean, geom = "bar", 
+               fill = "grey", 
+               color = "black") +
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  cleanup +
+  ylim(0, 100) +
+  xlab("Condition")+
+  ylab("Negative Attitude Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+
+ggplot(id_data, aes(x=condition, y=change_neg_attit, fill=alignement)) +
+    geom_boxplot(alpha=0.4) +
+    stat_summary(fun.y=mean, geom="point", shape=20, size=10, color="red", fill="red") +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set3")+
+    cleanup +
+    ylim(0, 100) +
+    xlab("Condition")+
+    ylab("Negative Attitude Change")+
+    scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+```
+
+Test between the conditions - aligned vs. misaligned
+```{r, echo = FALSE, message = FALSE, comment = NA}
+#analysis
+t.test(change_neg_attit ~ alignement, id_data, paired=FALSE,var.equal=TRUE)
+```
+
+ANOVA test between all four groups
+```{r, echo = FALSE, message = FALSE, comment = NA}
+res.aov2 <- aov(change_neg_attit ~ valence + alignement, data = id_data)
+summary(res.aov2)
+```
+
+#Affect
+
+###Total Affect Change
+```{r, echo = FALSE, message = FALSE, comment = NA}
+library(ggplot2)
+#a function to get rid of the ugly grey background in ggplot2
+aff_total = ggplot(id_data, aes(x=condition, y=change_total_aff, fill=alignement)) +  geom_violin()
+aff_total +
+  stat_summary(fun.y=mean, geom="point", 
+               shape=23, size=2, 
+               color="black")+
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.2)+
+  cleanup +
+  ylim(0, 3) +
+  xlab("Condition")+
+  ylab("Total Affect Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+#Bar plot
+aff_total_bar = ggplot(id_data, aes(condition, change_total_aff, fill=alignement)) # creating a blank plot
+
+aff_total_bar +
+  stat_summary(fun.y = mean, geom = "bar", 
+               fill = "grey", 
+               color = "black") +
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  cleanup +
+  ylim(0, 3) +
+  xlab("Condition")+
+  ylab("Total Affect Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+#boxplot
+ggplot(id_data, aes(x=condition, y=change_total_aff, fill=alignement)) +
+    geom_boxplot(alpha=0.4) +
+    stat_summary(fun.y=mean, geom="point", shape=20, size=10, color="red", fill="red") +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set3")+
+    cleanup +
+    ylim(0, 3) +
+    xlab("Condition")+
+    ylab("Total Affect Change")+
+    scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+```
+
+Test between the conditions - aligned vs. misaligned
+```{r, echo = FALSE, message = FALSE, comment = NA}
+#analysis
+t.test(change_total_aff ~ alignement, id_data, paired=FALSE,var.equal=TRUE)
+```
+
+ANOVA test between all four groups
+```{r, echo = FALSE, message = FALSE, comment = NA}
+res.aov2 <- aov(change_total_aff ~ valence + alignement, data = id_data)
+summary(res.aov2)
+```
+
+
+###Positive Affect Change
+
+```{r, echo = FALSE, message = FALSE, comment = NA}
+library(ggplot2)
+#a function to get rid of the ugly grey background in ggplot2
+aff_pos = ggplot(id_data, aes(x=condition, y=change_pos_aff, fill=alignement)) +  geom_violin()
+aff_pos +
+  stat_summary(fun.y=mean, geom="point", 
+               shape=23, size=2, 
+               color="black")+
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.2)+
+  cleanup +
+  ylim(0, 3) +
+  xlab("Condition")+
+  ylab("Positive Affect Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+#Bar plot
+aff_pos_bar = ggplot(id_data, aes(condition, change_pos_aff, fill=alignement)) # creating a blank plot
+
+aff_pos_bar +
+  stat_summary(fun.y = mean, geom = "bar", 
+               fill = "grey", 
+               color = "black") +
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  cleanup +
+  ylim(0, 3) +
+  xlab("Condition")+
+  ylab("Positive Affect Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+#boxplot
+ggplot(id_data, aes(x=condition, y=change_pos_aff, fill=alignement)) +
+    geom_boxplot(alpha=0.4) +
+    stat_summary(fun.y=mean, geom="point", shape=20, size=10, color="red", fill="red") +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set3")+
+    cleanup +
+    ylim(0, 3) +
+    xlab("Condition")+
+    ylab("Positive Affect Change")+
+    scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+```
+Test between the conditions - aligned vs. misaligned
+```{r, echo = FALSE, message = FALSE, comment = NA}
+#analysis
+t.test(change_pos_aff ~ alignement, id_data, paired=FALSE,var.equal=TRUE)
+```
+
+ANOVA test between all four groups
+```{r, echo = FALSE, message = FALSE, comment = NA}
+res.aov2 <- aov(change_pos_aff ~ valence + alignement, data = id_data)
+summary(res.aov2)
+```
+
+### Negative Affect Change
+
+```{r, echo = FALSE, message = FALSE, comment = NA}
+library(ggplot2)
+#a function to get rid of the ugly grey background in ggplot2
+aff_neg = ggplot(id_data, aes(x=condition, y=change_neg_aff, fill=alignement)) +  geom_violin()
+aff_neg +
+  stat_summary(fun.y=mean, geom="point", 
+               shape=23, size=2, 
+               color="black")+
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.2)+
+  cleanup +
+  ylim(0, 3) +
+  xlab("Condition")+
+  ylab("Negative Affect Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+#Bar plot
+aff_neg_bar = ggplot(id_data, aes(condition, change_neg_aff, fill=alignement)) # creating a blank plot
+
+aff_neg_bar +
+  stat_summary(fun.y = mean, geom = "bar", 
+               fill = "grey", 
+               color = "black") +
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  cleanup +
+  ylim(0, 3) +
+  xlab("Condition")+
+  ylab("Negative Affect Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+#boxplot
+ggplot(id_data, aes(x=condition, y=change_neg_aff, fill=alignement)) +
+    geom_boxplot(alpha=0.4) +
+    stat_summary(fun.y=mean, geom="point", shape=20, size=10, color="red", fill="red") +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set3")+
+    cleanup +
+    ylim(0, 3) +
+    xlab("Condition")+
+    ylab("Negative Affect Change")+
+    scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+```
+
+Test between the conditions - aligned vs. misaligned
+```{r, echo = FALSE, message = FALSE, comment = NA}
+#analysis
+t.test(change_neg_aff ~ alignement, id_data, paired=FALSE,var.equal=TRUE)
+```
+
+ANOVA test between all four groups
+```{r, echo = FALSE, message = FALSE, comment = NA}
+res.aov2 <- aov(change_neg_aff ~ valence + alignement, data = id_data)
+summary(res.aov2)
+```
+
+
+
+# Belief change
+
+```{r, echo = FALSE, message = FALSE, comment = NA}
+library(ggplot2)
+#a function to get rid of the ugly grey background in ggplot2
+belief = ggplot(id_data, aes(x=condition, y=belief_change, fill=alignement)) +  geom_violin()
+belief +
+  stat_summary(fun.y=mean, geom="point", 
+               shape=23, size=2, 
+               color="black")+
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.2)+
+  cleanup +
+  ylim(0, 50) +
+  xlab("Condition")+
+  ylab("Belief Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+
+#Bar plot
+belief_bar = ggplot(id_data, aes(condition, belief_change, fill=alignement)) # creating a blank plot
+
+belief_bar +
+  stat_summary(fun.y = mean, geom = "bar", 
+               fill = "grey", 
+               color = "black") +
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", width = .2, 
+               position = "dodge") +
+  cleanup +
+  ylim(0, 50) +
+  xlab("Condition")+
+  ylab("Belief Change")+
+  scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+
+
+#boxplot
+ggplot(id_data, aes(x=condition, y=belief_change, fill=alignement)) +
+    geom_boxplot(alpha=0.4) +
+    stat_summary(fun.y=mean, geom="point", shape=20, size=10, color="red", fill="red") +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set3")+
+    cleanup +
+    ylim(0, 50) +
+    xlab("Condition")+
+    ylab("Belief Change")+
+    scale_x_discrete(labels=c("Aligned\nConcerned", "Misaligned\nConcerned","Aligned\nUnconcerned", "Misaligned\nUnconcerned"))
+```
+
+Test between the conditions - aligned vs. misaligned
+```{r, echo = FALSE, message = FALSE, comment = NA}
+#analysis
+t.test(belief_change ~ alignement, id_data, paired=FALSE,var.equal=TRUE)
+```
+
+ANOVA test between all four groups
+```{r, echo = FALSE, message = FALSE, comment = NA}
+res.aov2 <- aov(belief_change ~ valence + alignement, data = id_data)
+summary(res.aov2)
+```
